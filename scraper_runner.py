@@ -1,7 +1,7 @@
 import time
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-URL = "https://aggrega-mqeq.bolt.host"
+URL = "https://game-rewards-aggrega-mqeq.bolt.host/"
 MAX_WAIT_SECONDS = 210   # أقصى وقت انتظار بعد الضغط (3.5 دقائق)
 POLL_INTERVAL = 5        # فحص السجل كل 5 ثوانٍ
 HEADLESS = True
@@ -55,7 +55,6 @@ def run_scraper():
 
         page.wait_for_timeout(5000)
 
-        # البحث عن زر Scrape Now والانتظار حتى يصبح ظاهراً
         btn = page.get_by_role("button", name="Scrape Now").first
         try:
             btn.wait_for(state="visible", timeout=45000)
@@ -125,7 +124,6 @@ def run_scraper():
                 print("[ERROR] ظهر خطأ يمنع الاستمرار في السجل.")
                 break
 
-            # إذا توقف السجل عن التغير لمدة 60 ثانية بعد بدء التشغيل
             if elapsed >= 35 and stale_seconds >= 60:
                 print("[WARN] لم يتغير السجل لمدة 60 ثانية؛ إنهاء الجلسة.")
                 break
