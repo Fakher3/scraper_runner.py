@@ -1,0 +1,30 @@
+name: Run Rewards Scraper
+
+on:
+  schedule:
+    # يعمل كل 30 دقيقة (بتوقيت UTC)
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {} # يسمح لك بتشغيله يدوياً متى شئت بضغطة زر
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run scraper
+        run: python scraper_runner.py
