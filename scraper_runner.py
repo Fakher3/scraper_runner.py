@@ -1,7 +1,9 @@
+import os
 import time
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 URL = "https://game-rewards-aggrega-mqeq.bolt.host/"
+PASSCODE = os.environ.get("SCRAPE_PASSCODE", "21774721")
 MAX_WAIT_SECONDS = 210   # أقصى وقت انتظار بعد الضغط (3.5 دقائق)
 POLL_INTERVAL = 5        # فحص السجل كل 5 ثوانٍ
 HEADLESS = True
@@ -31,6 +33,23 @@ def get_logs_text(page) -> str:
     return "\n".join(lines[-25:])
 
 
+def unlock_if_needed(page):
+    """إدخال رمز الدخول والضغط على Unlock إذا كانت الصفحة مقفلة."""
+    unlock_btn = page.locator("button:has-text('Unlock')").first
+    try:
+        if unlock_btn.is_visible(timeout=5000):
+            if not PASSCODE:
+                raise RuntimeError("رمز الدخول غير متوفر.")
+            print("[INFO] الصفحة مقفلة، جارٍ إدخال رمز الدخول...")
+            inp = page.locator("input[type='password'], input[type='text'], input").first
+            inp.wait_for(state="visible", timeout=10000)
+            inp.fill(PASSCODE)
+            unlock_btn.click()
+            page.wait_for_timeout(3000)
+    except PlaywrightTimeoutError:
+        pass
+
+
 def run_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -50,10 +69,11 @@ def run_scraper():
         try:
             page.goto(URL, wait_until="networkidle", timeout=90000)
         except PlaywrightTimeoutError:
-            print("[WARN] انتهى وقت networkidle، محاولة المتابعة بعد تحميل domcontentloaded...")
+            print("[WARN] انتهى وقت networkidle، المتابعة بعد تحميل domcontentloaded...")
             page.goto(URL, wait_until="domcontentloaded", timeout=90000)
 
-        page.wait_for_timeout(5000)
+        page.wait_for_timeout(3000)
+        unlock_if_needed(page)
 
         btn = page.get_by_role("button", name="Scrape Now").first
         try:
