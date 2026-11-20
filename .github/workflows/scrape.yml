@@ -2,9 +2,8 @@ name: Run Rewards Scraper
 
 on:
   schedule:
-    # يعمل كل 30 دقيقة (بتوقيت UTC)
-    - cron: "*/30 * * * *"
-  workflow_dispatch: {} # يسمح لك بتشغيله يدوياً متى شئت بضغطة زر
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
 
 jobs:
   scrape:
@@ -27,4 +26,6 @@ jobs:
           playwright install-deps chromium
 
       - name: Run scraper
+        env:
+          SCRAPE_PASSCODE: ${{ secrets.SCRAPE_PASSCODE }}
         run: python scraper_runner.py
